@@ -93,11 +93,17 @@ while wifi is False:
         time.sleep(1)
     
 app = HTTPServer()
+last_lux = 300.00
 
 async def lux_json_response():
     # Returns a JSON string with the current lux value
-    lux = await read_sensor()
-    response_json = {"id": "sensor-ambient_light", "state": f"{lux} lx", "value": lux}
+    global last_lux
+    try:
+        last_lux = await read_sensor()
+    except Exception as e:
+        print('Error reading sensor, reusing last read value: ')
+        print(e)
+    response_json = {"id": "sensor-ambient_light", "state": f"{last_lux} lx", "value": last_lux}
     return json.dumps(response_json)
 
 @app.route("GET", "/sensor/ambient_light")
