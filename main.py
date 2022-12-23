@@ -1,6 +1,6 @@
 import time
 import network
-from machine import Pin, I2C
+from machine import Pin, I2C, reset as machine_reset
 import ujson as json
 import uasyncio as asyncio
 from ahttpserver import HTTPResponse, HTTPServer
@@ -74,18 +74,35 @@ def setup_wifi():
     else:
         print("MAC = " + wlan.config("mac").hex()) #type: ignore
         print("IP  = " + wlan.ifconfig()[0])
+        return True
 
+read_sensor = None
+while read_sensor is None:
+    try:
+        read_sensor = setup_i2c()
+    except Exception:
+        print("Failed to connect to sensor, retrying in 1 second...")
+    time.sleep(1)
 
-read_sensor = setup_i2c()
+wifi = False
+while wifi is False:
+    try:
+        wifi = setup_wifi()
+    except:
+        print("Failed to connect to wifi, retrying in 1 second...")
+        time.sleep(1)
+    
 app = HTTPServer()
 
 async def lux_json_response():
+    # Returns a JSON string with the current lux value
     lux = await read_sensor()
     response_json = {"id": "sensor-ambient_light", "state": f"{lux} lx", "value": lux}
     return json.dumps(response_json)
 
 @app.route("GET", "/sensor/ambient_light")
 async def sensor_ambient_light(reader, writer, request):
+    # Respond to synchronous requests with the current lux value
     response = HTTPResponse(200, "application/json", close=True)
     await response.send(writer)
     await writer.drain()
@@ -95,6 +112,7 @@ async def sensor_ambient_light(reader, writer, request):
 
 @app.route("GET", "/events")
 async def events(reader, writer, request):
+    # Send an update very 2 seconds
     eventsource = await EventSource.init(reader, writer)
     while True:
         await asyncio.sleep(2)
@@ -105,7 +123,12 @@ async def events(reader, writer, request):
             break  # close connection
 
 if __name__ == "__main__":
-    setup_wifi()
-    loop = asyncio.get_event_loop()
-    loop.create_task(app.start())
-    loop.run_forever()
+    try:
+        loop = asyncio.get_event_loop()
+        loop.create_task(app.start())
+        loop.run_forever() # this blocks until an exception is encountered
+    except Exception as e:
+        # all sorts of things could have happened, best to print what we know, wait a bit, and reset the device
+        print(e)
+        time.sleep(10)
+        machine_reset()
