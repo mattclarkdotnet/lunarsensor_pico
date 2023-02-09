@@ -110,7 +110,10 @@ class HTTPServer:
             if e.args[0] == errno.ECONNRESET:  # connection reset by client
                 pass
             else:
-                raise e
+                # This used to raise the exception, instead we return a 500 and print the exception details to the console
+                print(f"Exception in _handle_request: {e}")
+                response = HTTPResponse(500)
+                await response.send(writer)
         finally:
             await writer.drain()
             writer.close()
