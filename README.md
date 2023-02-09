@@ -2,6 +2,8 @@
 
 Based on code from https://github.com/alin23/lunarsensor, and using Erik Delange's micropython async HTTP server (https://github.com/erikdelange/MicroPython-HTTP-Server).
 
+The hardware used is a Pi Pico W and a VEML6030 ambient light sensor.
+
 You'll need to create a file "wifi.json" in the project root before uploading to your Pico W, in the following format
 
 ```json

@@ -17,8 +17,8 @@ async def lux_json_response() -> str:
     try:
         last_lux = await read_sensor()
     except Exception as e:
-        log(f"Error reading sensor, reusing last read value: {last_lux}")
-        log(str(e))
+        # Ignore all read errors, just use the last value
+        log(f"Error reading sensor, reusing last read value: {last_lux}: {str(e)}")
     response_json = {
         "id": "sensor-ambient_light",
         "state": f"{last_lux} lx",
