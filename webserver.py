@@ -44,6 +44,7 @@ def make_webserver(sensor_reader, default_lux) -> HTTPServer:
     @server.route("GET", "/sensor/ambient_light")
     async def sensor_ambient_light(reader, writer, request):
         # Respond to synchronous requests with the current lux value
+        log(f"GET /sensor/ambient_light")
         response = HTTPResponse(200, "application/json", close=True)
         await response.send(writer)
         await writer.drain()
@@ -53,6 +54,7 @@ def make_webserver(sensor_reader, default_lux) -> HTTPServer:
     @server.route("GET", "/events")
     async def events(reader, writer, request):
         # Send an update very 2 seconds
+        log(f"GET /events")
         eventsource = await EventSource.init(reader, writer)
         while True:
             await asyncio.sleep(2)
@@ -64,6 +66,7 @@ def make_webserver(sensor_reader, default_lux) -> HTTPServer:
 
     @server.route("GET", "/logs")
     async def logs(reader, writer, request):
+        log(f"GET /logs")
         response = HTTPResponse(200, "text/plain", close=True)
         await response.send(writer)
         await writer.drain()

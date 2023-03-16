@@ -7,6 +7,7 @@ from logs import log
 
 import webserver
 import wifi
+import ntp
 import hardware
 
 # Timezone offset in hours from UTC (used for logging)
@@ -25,7 +26,11 @@ if __name__ == "__main__":
     try:
         hardware.setup_i2c()
         wifi.setup_wifi(WIFI_SSID, WIFI_PASSWORD)
-        wifi.maybe_set_system_clock(TZ_OFFSET)
+        try:
+            ntp_time = ntp.get_ntp_time()
+            ntp.set_system_clock(ntp_time, TZ_OFFSET)
+        except Exception as e:
+            log(f"Failed to set RTC: {str(e)}")
         server = webserver.make_webserver(hardware.read_sensor, DEFAULT_LUX)
         loop = asyncio.get_event_loop()
         task = loop.create_task(

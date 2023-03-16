@@ -1,8 +1,5 @@
 import utime as time
 
-"""
-Simple logging function to keep a buffer of the last 100 log messages so we can make them available at the /logs endpoint
-"""
 _logbuffer: list = []
 _logbuffer_max = 100
 
@@ -12,7 +9,7 @@ def logbuffer() -> list:
 
 
 def log(log_message: str) -> None:
-    """Log a message to the console and the log buffer with the local time added, and restricts the log buffer to the last 100 messages.
+    """Log a message to the console and the log buffer with the local time added, and restrict the log buffer to the last _logbuffer_max messages.
 
     Args: log_message (str): the message to log
 
